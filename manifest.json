@@ -1,9 +1,1 @@
-{
-  "name": "FITPRO Online",
-  "short_name": "FITPRO",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#080a0d",
-  "theme_color": "#a3ff12",
-  "description": "Personal Trainer Online com IA adaptativa"
-}
+{"name":"FITPRO Online","short_name":"FITPRO","start_url":"./","display":"standalone","background_color":"#090b0e","theme_color":"#0b0d10","description":"Personal trainer online: treinos, evolução e chat com personal."}
