@@ -15,22 +15,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Reconstruct FITPRO app
+      - name: Validate FITPRO app
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html
+          grep -q "FITPRO Online V6.1" index.html
+          test -s manifest.json
+          test -s sw.js
+          echo "FITPRO source OK"
+          wc -c index.html
+
+      - name: Prepare site
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p _site
-          base64 -d index.html.gz.b64 | gunzip > _site/index.html
+          cp index.html _site/index.html
           cp manifest.json _site/manifest.json
           cp sw.js _site/sw.js
-          test -s _site/index.html
-          grep -q "FITPRO Online V6.1" _site/index.html
-          echo "FITPRO build OK"
-          wc -c _site/index.html
+          touch _site/.nojekyll
+          echo "FITPRO site prepared"
 
       - name: Upload validated site artifact
         uses: actions/upload-artifact@v4
         with:
           name: fitpro-v6-1-site
           path: _site
+          include-hidden-files: true
           if-no-files-found: error
