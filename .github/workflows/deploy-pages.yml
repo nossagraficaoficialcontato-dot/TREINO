@@ -1,4 +1,4 @@
-name: Build FITPRO Online
+name: Build FITPRO V7
 
 on:
   push:
@@ -15,32 +15,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate FITPRO app
+      - name: Validate FITPRO V7
         shell: bash
         run: |
           set -euo pipefail
           test -s index.html
-          grep -q "FITPRO Online V6.1" index.html
+          grep -q "FITPRO V7" index.html
+          test -s styles.css
           test -s manifest.json
           test -s sw.js
-          echo "FITPRO source OK"
-          wc -c index.html
+          test -s js/app.js
+          test -s js/config.js
+          test -s js/data.js
+          test -s js/ui.js
+          test -s js/assessment.js
+          test -s js/workouts.js
+          echo "FITPRO V7 source OK"
 
       - name: Prepare site
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p _site
-          cp index.html _site/index.html
-          cp manifest.json _site/manifest.json
-          cp sw.js _site/sw.js
+          mkdir -p _site/js
+          cp index.html styles.css manifest.json sw.js _site/
+          cp js/*.js _site/js/
           touch _site/.nojekyll
-          echo "FITPRO site prepared"
+          echo "FITPRO V7 site prepared"
 
       - name: Upload validated site artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fitpro-v6-1-site
+          name: fitpro-v7-site
           path: _site
           include-hidden-files: true
           if-no-files-found: error
