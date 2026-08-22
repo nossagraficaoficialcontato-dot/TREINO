@@ -4,7 +4,7 @@ const SUPABASE_URL='https://ciqzrrpsnhbsqafpbdsu.supabase.co';
 const SUPABASE_KEY='sb_publishable_L_KJL0I0Xzu9Mdt8mYGPVw_LvbjICBM';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-function esc(v=''){return String(v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function esc(v=''){return String(v).replace(/[&<>'\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[m]))}
 function toast(msg,err=false){const t=$('#toast');if(!t)return;t.textContent=msg;t.classList.remove('hidden');t.style.borderColor=err?'#71323a':'#353d46';clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.add('hidden'),3500)}
 function initials(name='U'){return name.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'U'}
 async function loadProfile(uid){const r=await db.from('fitpro_profiles').select('*').eq('id',uid).single();if(r.error)throw r.error;return r.data}
@@ -25,7 +25,10 @@ function assessmentView(){app.innerHTML=`<div class="auth"><div class="authCard"
 function workoutDetail(w){const ex=w.fitpro_exercises||[];app.innerHTML=`<div class="shell"><main><button id="back" class="btn ghost">← Voltar</button><h1>${esc(w.title)}</h1>${ex.map(x=>`<div class="exercise"><h3>${esc(x.name)}</h3><p class="muted">${x.sets} séries • ${esc(x.reps)} reps • RIR ${x.target_rir??2}</p></div>`).join('')}</main></div>`;$('#back').onclick=render}
 function bind(){$('#assessment')?.addEventListener('click',assessmentView);$('#start')?.addEventListener('click',()=>{const next=state.workouts.find(w=>!w.completed_at);if(next)workoutDetail(next)});document.querySelectorAll('[data-workout]').forEach(b=>b.onclick=()=>workoutDetail(state.workouts.find(w=>String(w.id)===b.dataset.workout)));$('#logout')?.addEventListener('click',async()=>{await db.auth.signOut();state={session:null,profile:null,workouts:[],prescription:null,measurements:[],tab:'home'};authView()})}
 function render(){if(!state.session)return authView();shell(state.tab==='home'?home():state.tab==='treinos'?workoutsView():state.tab==='progresso'?progress():profile());bind()}
-async function boot(session){state.session=session;if(!session)return render();try{await refresh()}catch(e){console.error(e);state.profile={full_name:session.user?.user_metadata?.full_name||session.user?.email?.split('@')[0]||'Aluno',role:'student'};state.workouts=[];state.measurements=[]}render()}
-db.auth.onAuthStateChange((_e,s)=>boot(s));db.auth.getSession().then(r=>boot(r.data.session));
+async function boot(session){state.session=session;if(!session){authView();window.FITPRO_READY=true;return}try{await refresh()}catch(e){console.error(e);state.profile={full_name:session.user?.user_metadata?.full_name||session.user?.email?.split('@')[0]||'Aluno',role:'student'};state.workouts=[];state.measurements=[]}render();window.FITPRO_READY=true}
+// Render immediately so the screen can never remain blank while auth initializes.
+authView();
 window.FITPRO_READY=true;
+db.auth.onAuthStateChange((_e,s)=>boot(s));
+db.auth.getSession().then(r=>boot(r.data.session)).catch(e=>{console.error(e);authView();window.FITPRO_READY=true});
 })();
